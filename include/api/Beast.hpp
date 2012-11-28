@@ -12,14 +12,14 @@
 */
 class Beast : public Particle {
 
-    protected :
+    public :
         int m_life;     // life points
         float m_aggro;  // aggressiveness
 
     public:
         static const int PV_MAX = 20;
         static const int VAR_AGGRO = 10;
-        
+
         // CONSTRUCTORS
         Beast():Particle(2.0) { // default constructor, should not use it directly.
             m_life = PV_MAX;
@@ -36,7 +36,7 @@ class Beast : public Particle {
             b->touched();
         }
 
-        void touched(){ 
+        void touched(){
             //--m_life; // decrease life
             //mass-=0.01;
             m_aggro*=1.1; // an injured animal is more dangerous
@@ -44,5 +44,5 @@ class Beast : public Particle {
 
         bool isAlive(){ return (m_life > 0 || mass <= 0); }
 };
-        
+
 #endif

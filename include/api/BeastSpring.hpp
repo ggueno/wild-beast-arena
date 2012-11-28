@@ -19,11 +19,11 @@ class BeastSpring : public Spring {
             m_alpha(alpha), m_threshold(threshold), m_dt(dt){};
 
         void generateForces( Particle* p1, Particle* p2 ){
-            //generateForces( (Beast*)p1, (Beast*)p2 );
+            generateForces( (Beast*)p1, (Beast*)p2 );
         }
 
         void generateForces( Beast* p1, Beast* p2 ){
-    
+
             // Proximity handling
             float distance = glm::distance( p1->position, p2->position );
             if( distance < m_threshold ) p1->collide( p2 );
@@ -40,7 +40,7 @@ class BeastSpring : public Spring {
             float cs = cos(theta);
             float sn = sin(theta);
             glm::vec2 run( -(attack.x*cs - attack.y*sn)
-                         , -(attack.x*sn + attack.y*cs) ); 
+                         , -(attack.x*sn + attack.y*cs) );
 
             if( p1->life() > p2->life() ){
                 // coef is used to adjust haste

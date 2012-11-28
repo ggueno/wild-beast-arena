@@ -4,6 +4,7 @@
 #include <vector>
 #include <GL/glew.h>
 #include "api/Particle.hpp"
+#include "api/Beast.hpp"
 
 class GLRenderer {
 public:
@@ -11,7 +12,7 @@ public:
 
     ~GLRenderer();
 
-    void render(const Particle* particles, size_t count) const;
+    void render(const Beast* particles, size_t count) const;
 
     size_t addPolygon(const glm::vec2* vertices, size_t count, const glm::vec3& color);
 

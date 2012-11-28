@@ -250,7 +250,7 @@ void GLRenderer::displayPolygon(size_t index, bool display) {
     m_PolygonIsEnabled[index] = display;
 }
 
-void GLRenderer::render(const Particle* particles, size_t count) const {
+void GLRenderer::render(const Beast* particles, size_t count) const {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -260,7 +260,7 @@ void GLRenderer::render(const Particle* particles, size_t count) const {
 
     glBindVertexArray(m_ParticleVAO);
 
-    for(const Particle *p = particles, *end = particles + count;
+    for(const Beast *p = particles, *end = particles + count;
         p != end; ++p) {
         glUniform3f(m_ParticleColorUniformLocation, p->color.r, p->color.g, p->color.b);
         glUniform2f(m_ParticlePositionUniformLocation, p->position.x, p->position.y);

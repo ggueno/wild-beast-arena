@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     BeastSpring wba(60,0.1,dt); // BEAST
 
     // Code d'exemple pour le rendu: des particles placées en cercle
-    std::vector<Particle> particles(20);
+    std::vector<Beast> particles(200);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
         float c = cos(i * delta), s = sin(i * delta);
@@ -111,18 +111,18 @@ int main(int argc, char** argv) {
         for( size_t i = 0; i < particles.size(); ++i ){
             //gravity.generateForces( &particles[i], NULL );
             //attr.generateForces( &particles[i], irrGCenter, 50 ); // Attraction polygone-particules
-            //grid.insert( std::pair<short unsigned int, const Beast*>( fromPosToGrid(particles[i].position)
-            //                                                            , &particles[i] ) ); // BEAST
+            grid.insert( std::pair<short unsigned int, const Beast*>( fromPosToGrid(particles[i].position)
+                                                                        , &particles[i] ) ); // BEAST
         }
         // BEAST pour chaque zone de la multimap
         // for...
             for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
-                
+
                 for(size_t j = i+1; j < particles.size(); ++j){ // Pour chaque ressort de collision
-                    hook.generateForces( &particles[i], &particles[j] );
+                    //hook.generateForces( &particles[i], &particles[j] );
                     //cb.generateForces( &particles[i], &particles[j] );
                     //attr.generateForces( &particles[j], &particles[0] ); // Attraction inter-particules
-                    //wba.generateForces( &particles[i], &particles[j] );
+                    wba.generateForces( &particles[i], &particles[j] );
                 }
             }
 
