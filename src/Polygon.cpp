@@ -31,7 +31,6 @@ const glm::vec2& Polygon::getGCenter() const {
     gy = gy/(6*aire);
 
         printf("( %f, %f)\n", gx, gy);
-
     return glm::vec2(gx, gy);
 }
 

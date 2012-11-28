@@ -29,5 +29,3 @@ void PolygonSpring::generateForces(Particle* p, const glm::vec2& v0, const glm::
         p->force += m_fElasticity * alpha * normal;
     }
 }
-
-
