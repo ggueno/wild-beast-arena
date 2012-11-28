@@ -17,6 +17,7 @@
 
 #include "api/Beast.hpp"
 #include "api/BeastSpring.hpp"
+#include <map>
 
 using namespace std;
 
@@ -27,7 +28,7 @@ static const char* WINDOW_TITLE = "Imac Particle System";
 
 ////////////////////////////////////////////////////////////////
 /*    TODO  FLAG BEAST  */
-typedef std::multimap<short unsigned int, const Particle*> mmGrid ;
+typedef std::multimap<short unsigned int, const Beast*> mmGrid ;
 
 mmGrid::key_type fromPosToGrid( const glm::vec2& pos ){
     mmGrid::key_type index = (mmGrid::key_type)( (pos.x+1.0)/3.0f );
@@ -55,10 +56,10 @@ int main(int argc, char** argv) {
     CineticBrake cb(0.000001, dt);
     Attraction attr(0.001);
     mmGrid grid; // BEAST
-    wbaSpring wba; // BEAST
+    BeastSpring wba(60,0.1,dt); // BEAST
 
     // Code d'exemple pour le rendu: des particles placées en cercle
-    std::vector<Beast> particles(50);
+    std::vector<Particle> particles(20);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
         float c = cos(i * delta), s = sin(i * delta);
@@ -66,9 +67,6 @@ int main(int argc, char** argv) {
         particles[i].color = glm::vec3(1-c, 1-s, c*s);
         particles[i].mass = 1.f;
     }
-    particles[0].mass = 3.f; // JUST FOR FUN =D
-    particles[0].velocity.x = 0.3f;
-    particles[0].velocity.y = 0.2f;
 
     Polygon poly(glm::vec3(1.0, 0.8, 0.0), false );
     renderer.addPolygon( &poly.m_Vertices[0], poly.m_Vertices.size(), poly.color );
@@ -79,15 +77,6 @@ int main(int argc, char** argv) {
     Box::build( glm::vec2(-0.9, -0.9), 1.8, 1.8, obstacles.back() );
 
     // Ici ajout d'autres obstacles eventuels
-        // polygone milieu
-    Polygon core(glm::vec3(0, 1, 0), false);
-    core.addVertex( glm::vec2(-0.1, 0.1));
-    core.addVertex( glm::vec2(0.1, 0.0));
-    core.addVertex( glm::vec2(0.2, 0.5));
-    core.addVertex( glm::vec2(0.0, 0.6));
-    core.addVertex( glm::vec2(-0.2, 0.4));
-    obstacles.push_back( core );
-    //std::cout << obstacles.back().getGCenter().x << std::endl;
         // polygone irrégulier
     Polygon irr( glm::vec3(1, 0.8, 0.2), true );
     irr.addVertex( glm::vec2(-1, -1) );
@@ -121,19 +110,19 @@ int main(int argc, char** argv) {
         /** Placez votre code de simulation ici */
         for( size_t i = 0; i < particles.size(); ++i ){
             //gravity.generateForces( &particles[i], NULL );
-            attr.generateForces( &particles[i], irrGCenter, 50 ); // Attraction polygone-particules
-            grid.insert( std::pair<short unsigned int, const Particle*>( fromPosToGrid(particles[i].position)
-                                                                        , &particles[i] ); // BEAST
+            //attr.generateForces( &particles[i], irrGCenter, 50 ); // Attraction polygone-particules
+            //grid.insert( std::pair<short unsigned int, const Beast*>( fromPosToGrid(particles[i].position)
+            //                                                            , &particles[i] ) ); // BEAST
         }
         // BEAST pour chaque zone de la multimap
         // for...
             for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
                 
                 for(size_t j = i+1; j < particles.size(); ++j){ // Pour chaque ressort de collision
-                    //hook.generateForces( &particles[i], &particles[j] );
+                    hook.generateForces( &particles[i], &particles[j] );
                     //cb.generateForces( &particles[i], &particles[j] );
                     //attr.generateForces( &particles[j], &particles[0] ); // Attraction inter-particules
-                    wba.generateForces( &particles[i], &particles[j] );
+                    //wba.generateForces( &particles[i], &particles[j] );
                 }
             }
 
@@ -148,6 +137,7 @@ int main(int argc, char** argv) {
         for(size_t i = 0; i < particles.size(); ++i){
 	        solver.solve(particles[i], dt);
         }
+
 
         SDL_Event e;
         while(SDL_PollEvent(&e)) {
@@ -164,4 +154,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
 
