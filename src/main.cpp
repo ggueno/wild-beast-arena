@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <SDL/SDL.h>
+#include <cstdlib>
 
 #include "api/Particle.hpp"
 #include "api/GravitySpring.hpp"
@@ -38,6 +39,11 @@ mmGrid::key_type fromPosToGrid( const glm::vec2& pos ){
 
 ////////////////////////////////////////////////////////////////////
 
+float rand_FloatRange(float a, float b)
+{
+    return ((b-a)*((float)rand()/RAND_MAX))+a;
+}
+
 
 int main(int argc, char** argv) {
     // Initialisation de la SDL
@@ -56,15 +62,18 @@ int main(int argc, char** argv) {
     CineticBrake cb(0.000001, dt);
     Attraction attr(0.001);
     mmGrid grid; // BEAST
-    BeastSpring wba(60,0.1,dt); // BEAST
+    BeastSpring wba(1,0.1,dt*100); // BEAST
 
     // Code d'exemple pour le rendu: des particles placées en cercle
     std::vector<Beast> particles(200);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
         float c = cos(i * delta), s = sin(i * delta);
-        particles[i].position = glm::vec2(0.5f * c, 0.5f * s);
-        particles[i].color = glm::vec3(1-c, 1-s, c*s);
+
+
+
+        particles[i].position = glm::vec2(rand_FloatRange(-0.9,0.9) , rand_FloatRange(-0.9,0.9));
+        particles[i].color = glm::vec3(1.,1.,1.);
         particles[i].mass = 1.f;
     }
 
@@ -78,13 +87,13 @@ int main(int argc, char** argv) {
 
     // Ici ajout d'autres obstacles eventuels
         // polygone irrégulier
-    Polygon irr( glm::vec3(1, 0.8, 0.2), true );
-    irr.addVertex( glm::vec2(-1, -1) );
-    irr.addVertex( glm::vec2(1, -0.8) );
-    irr.addVertex( glm::vec2(0.8, 0.7) );
-    irr.addVertex( glm::vec2(-0.6, 1) );
-    obstacles.push_back( irr );
-    glm::vec2 irrGCenter = irr.getGCenter();
+    // Polygon irr( glm::vec3(1, 0.8, 0.2), true );
+    // irr.addVertex( glm::vec2(-1, -1) );
+    // irr.addVertex( glm::vec2(1, -0.8) );
+    // irr.addVertex( glm::vec2(0.8, 0.7) );
+    // irr.addVertex( glm::vec2(-0.6, 1) );
+    // obstacles.push_back( irr );
+    // glm::vec2 irrGCenter = irr.getGCenter();
 
     // Ajoute des obstacles au renderer
     for( size_t i = 0; i < obstacles.size(); ++i ){
