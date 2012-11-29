@@ -62,16 +62,13 @@ int main(int argc, char** argv) {
     CineticBrake cb(0.000001, dt);
     Attraction attr(0.001);
     mmGrid grid; // BEAST
-    BeastSpring wba(1,0.1,dt*100); // BEAST
+    BeastSpring wba(1,0.1,dt*10); // BEAST
 
     // Code d'exemple pour le rendu: des particles placées en cercle
     std::vector<Beast> particles(200);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
         float c = cos(i * delta), s = sin(i * delta);
-
-
-
         particles[i].position = glm::vec2(rand_FloatRange(-0.9,0.9) , rand_FloatRange(-0.9,0.9));
         particles[i].color = glm::vec3(1.,1.,1.);
         particles[i].mass = 1.f;
@@ -125,26 +122,36 @@ int main(int argc, char** argv) {
         }
         // BEAST pour chaque zone de la multimap
         // for...
-            for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
+        for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
 
-                for(size_t j = i+1; j < particles.size(); ++j){ // Pour chaque ressort de collision
-                    //hook.generateForces( &particles[i], &particles[j] );
-                    //cb.generateForces( &particles[i], &particles[j] );
-                    //attr.generateForces( &particles[j], &particles[0] ); // Attraction inter-particules
-                    wba.generateForces( &particles[i], &particles[j] );
-                }
-            }
+            for(size_t j = i+1; j < particles.size(); ++j){ // Pour chaque ressort de collision
+                //hook.generateForces( &particles[i], &particles[j] );
+                //cb.generateForces( &particles[i], &particles[j] );
+                //attr.generateForces( &particles[j], &particles[0] ); // Attraction inter-particules
+                wba.generateForces( &particles[i], &particles[j] );
 
-            // Après l'application des autres forces (gravité seulement pour l'instant):
-            for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
-                for(size_t j = 0; j < polygonSprings.size(); ++j) { // Pour chaque ressort de collision
-                    polygonSprings[j].generateForces(&particles[i], 0); // Test de collision et génération des forces
-                }
+                if(particles[i].collision(&particles[j]))
+                    particles[i].collide(&particles[j]);
             }
+        }
+
+        // Après l'application des autres forces (gravité seulement pour l'instant):
+        for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
+            for(size_t j = 0; j < polygonSprings.size(); ++j) { // Pour chaque ressort de collision
+                polygonSprings[j].generateForces(&particles[i], 0); // Test de collision et génération des forces
+            }
+        }
 
         // Résolution pour chaque particule:
         for(size_t i = 0; i < particles.size(); ++i){
 	        solver.solve(particles[i], dt);
+        }
+
+        if(particles.size()>0) std::cout << particles.size() << std::endl;
+
+        for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
+            if(!particles[i].isAlive()) particles.erase(particles.begin()+i);
+
         }
 
 

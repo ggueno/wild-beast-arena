@@ -42,16 +42,20 @@ class BeastSpring : public Spring {
             glm::vec2 run( -(attack.x*cs - attack.y*sn)
                          , -(attack.x*sn + attack.y*cs) );
 
+
             if( p1->life() > p2->life() ){
                 // coef is used to adjust haste
                 float coef = p1->aggro() * ( p1->life() - p2->life() ) ;
                 p1->force += attack * coef;
                 p2->force += run ; // TODO define a better behaviour
+
+
             }
             else {
                 float coef = p2->aggro() * ( p2->life() - p1->life() ) ;
                 p2->force += attack * coef ;
                 p1->force += run ; // TODO define a better behaviour
+
             }
         }
 
