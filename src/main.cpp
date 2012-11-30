@@ -29,11 +29,13 @@ static const char* WINDOW_TITLE = "Imac Particle System";
 
 ////////////////////////////////////////////////////////////////
 /*    TODO  FLAG BEAST  */
-typedef std::multimap<short unsigned int, const Beast*> mmGrid ;
 
+typedef std::multimap<short unsigned int, size_t> mmGrid ;
+static const int gridWidth = 3;
+static const int gridHeight = 3;
 mmGrid::key_type fromPosToGrid( const glm::vec2& pos ){
-    mmGrid::key_type index = (mmGrid::key_type)( (pos.x+1.0)/3.0f );
-    index += (mmGrid::key_type)( ( (pos.y+1.0)/3.0f )*10 );
+    mmGrid::key_type index = (mmGrid::key_type)( (pos.x+1.0)/(float)gridWidth );
+    index += (mmGrid::key_type)( ( (pos.y+1.0)/(float)gridHeight )*10 );
     return index;
 }
 
@@ -61,11 +63,16 @@ int main(int argc, char** argv) {
     HookSpring hook(10.0, 1.0);;
     CineticBrake cb(0.000001, dt);
     Attraction attr(0.001);
-    mmGrid grid; // BEAST
-    BeastSpring wba(1,0.1,dt*10); // BEAST
+
+    // BEAST
+    mmGrid grid;
+    mmGrid::const_iterator gridIt;
+    mmGrid::const_iterator gridIt2;
+    //std::vector<Beast*> gridZone ; // Vecteur contenant les Beast d'une zone de la multimap, on devrait pouvoir s'en passer en utilisant correctement la fonction equal_range
+    BeastSpring wba( 0, 0.01, dt );
 
     // Code d'exemple pour le rendu: des particles placées en cercle
-    std::vector<Beast> particles(200);
+    std::vector<Beast> particles(20);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
         float c = cos(i * delta), s = sin(i * delta);
@@ -115,23 +122,19 @@ int main(int argc, char** argv) {
 
         /** Placez votre code de simulation ici */
         for( size_t i = 0; i < particles.size(); ++i ){
-            //gravity.generateForces( &particles[i], NULL );
-            //attr.generateForces( &particles[i], irrGCenter, 50 ); // Attraction polygone-particules
-            grid.insert( std::pair<short unsigned int, const Beast*>( fromPosToGrid(particles[i].position)
-                                                                        , &particles[i] ) ); // BEAST
+            grid.insert( std::pair<short unsigned int, size_t>( fromPosToGrid(particles[i].position), i ) ); // BEAST construction de la multimap
         }
+
         // BEAST pour chaque zone de la multimap
-        // for...
-        for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
+        for( short unsigned int i=0 ; i < gridWidth*gridHeight ; ++i ){
+            for( gridIt = grid.equal_range(i).first ; gridIt != grid.equal_range(i).second ; ++gridIt ){
+                gridIt2 = gridIt;
+                ++gridIt2;
+                while( gridIt2 != grid.equal_range(i).second ){
+                    wba.generateForces( &particles[gridIt->second], &particles[gridIt2->second] );
+                    ++ gridIt2;
+                }
 
-            for(size_t j = i+1; j < particles.size(); ++j){ // Pour chaque ressort de collision
-                //hook.generateForces( &particles[i], &particles[j] );
-                //cb.generateForces( &particles[i], &particles[j] );
-                //attr.generateForces( &particles[j], &particles[0] ); // Attraction inter-particules
-                wba.generateForces( &particles[i], &particles[j] );
-
-                if(particles[i].collision(&particles[j]))
-                    particles[i].collide(&particles[j]);
             }
         }
 
@@ -144,10 +147,10 @@ int main(int argc, char** argv) {
 
         // Résolution pour chaque particule:
         for(size_t i = 0; i < particles.size(); ++i){
-	        solver.solve(particles[i], dt);
+            solver.solve( particles[i], dt );
         }
 
-        if(particles.size()>0) std::cout << particles.size() << std::endl;
+        //if(particles.size()>0) std::cout << particles.size() << std::endl;
 
         for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
             if(!particles[i].isAlive()) particles.erase(particles.begin()+i);
@@ -156,7 +159,7 @@ int main(int argc, char** argv) {
 
 
         SDL_Event e;
-        while(SDL_PollEvent(&e)) {
+        while( SDL_PollEvent(&e) ) {
             if(e.type == SDL_QUIT) {
                 done = true;
                 break;

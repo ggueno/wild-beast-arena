@@ -17,7 +17,7 @@ class Beast : public Particle {
         float m_aggro;  // aggressiveness
 
     public:
-        static const int PV_MAX = 20000;
+        static const int PV_MAX = 100;
         static const int VAR_AGGRO = 10;
 
         // CONSTRUCTORS
@@ -28,27 +28,28 @@ class Beast : public Particle {
         //Beast( glm::vec2 position ):Particle( position ){};
 
         // GETTERS & SETTERS
-        int life(){ return m_life ; }
-        float aggro(){ return m_aggro; }
+        int life() const { return m_life ; }
+        float aggro() const { return m_aggro; }
 
         void collide( Beast* b ){
             touched();
             b->touched();
         }
 
-        bool collision(Beast * b){
-            float eps = 0.00001;
-            //std::cout << position.x << "-" << position.y << "b = " << b->position.x << "-" << b->position.y << std::endl;
-            return (abs(position.x-b->position.x)+1.0f<eps && abs(position.y-b->position.y)+1.0f<eps);
-        }
+// TODO c'est géré par le ressort, voir "Proximity handling" dans BeastSpring::generateForces
+//        bool isNear(Beast * b){
+//            float eps = 0.00001;
+//            return (abs(position.x-b->position.x)+1.0f<eps && abs(position.y-b->position.y)+1.0f<eps);
+//        }
 
         void touched(){
-            m_life -= m_life*0.0000000000001; // decrease life
-            //mass-=0.01;
+            m_life -= m_life*0.01; // decrease life
             m_aggro*=1.1; // an injured animal is more dangerous
          }
 
-        bool isAlive(){ return (m_life > 0); }
+        bool isAlive() const { return (m_life > 0); }
+
+        void addForce( const glm::vec2& f ){ force+=f; }
 };
 
 #endif

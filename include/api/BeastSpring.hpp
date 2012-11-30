@@ -10,9 +10,9 @@ float degToRad( float angle ){ return angle*3.14159 / 180.0 ; } // Ouh c'est pas
 
 class BeastSpring : public Spring {
     private:
-        float m_alpha ; // random flee angle, in degrees
-        float m_threshold ;
-        float m_dt ;
+        float m_alpha ;     // random flee angle, in degrees
+        float m_threshold ; // security distance threshold
+        float m_dt ;        // simulation step
 
     public:
         BeastSpring(float alpha, float threshold, float dt):
@@ -26,13 +26,13 @@ class BeastSpring : public Spring {
 
             // Proximity handling
             float distance = glm::distance( p1->position, p2->position );
-            if( distance < m_threshold ) p1->collide( p2 );
+            if( distance < m_threshold ) p1->collide( p2 ); // En cas de contact, un comportement à définir
 
             // New forces
             // First vector is simple
             float epsilon = 0.00001;
             glm::vec2 attack( p2->position - p1->position );
-            attack = attack * m_dt / glm::max(epsilon, distance) ;
+            attack = attack * m_dt ;// glm::max(epsilon, distance) ;
 
             // We add a random angle to make the second more complicated
             float theta = ( (rand() / RAND_MAX) * 2 - 1 ) * m_alpha;
@@ -42,19 +42,16 @@ class BeastSpring : public Spring {
             glm::vec2 run( -(attack.x*cs - attack.y*sn)
                          , -(attack.x*sn + attack.y*cs) );
 
-
-            if( p1->life() > p2->life() ){
+            if( p1->life()*p1->aggro() > p2->life()*p2->aggro() ){
                 // coef is used to adjust haste
-                float coef = p1->aggro() * ( p1->life() - p2->life() ) ;
-                p1->force += attack * coef;
-                p2->force += run ; // TODO define a better behaviour
-
-
+                float coef = p1->aggro() ;//* ( p1->life() - p2->life() ) ;
+                p1->addForce( attack * coef );
+                p2->addForce( run ); // TODO define a better behaviour
             }
             else {
-                float coef = p2->aggro() * ( p2->life() - p1->life() ) ;
-                p2->force += attack * coef ;
-                p1->force += run ; // TODO define a better behaviour
+                float coef = p2->aggro() ;//* ( p2->life() - p1->life() ) ;
+                p2->addForce( attack * coef );
+                p1->addForce( run ); // TODO define a better behaviour
 
             }
         }
