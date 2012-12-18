@@ -5,11 +5,11 @@
 
 class HookSpring : public Spring {
     private:
-        float m_k ; // constant
-        float m_L0 ;
+        float m_k ; // constant, 10
+        float m_L0 ; // 1.0
     public:
         HookSpring(float k, float l0):
-            m_k(k), m_L0(l0){};
+            m_k(k), m_L0(l0){}; 
 
         void generateForces( Particle* p1, Particle* p2 ){
             float epsilon = 0.00001;

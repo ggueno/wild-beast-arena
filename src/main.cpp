@@ -25,7 +25,7 @@ using namespace std;
 static const size_t WINDOW_WIDTH = 512;
 static const size_t WINDOW_HEIGHT = 512;
 static const size_t BYTES_PER_PIXEL = 32;
-static const char* WINDOW_TITLE = "Imac Particle System";
+static const char* WINDOW_TITLE = "Wild Beast Arena";
 
 ////////////////////////////////////////////////////////////////
 /*    TODO  FLAG BEAST  */
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     GLRenderer renderer;
 
     /** Placez votre code d'initialisation de la simulation ici **/
-    static const float dt = 0.0005; // Pas de simulation, choix arbitraire mais dois rester petit pour que le systeme n'explose pas
+    static const float dt = 0.00051; // Pas de simulation, choix arbitraire mais dois rester petit pour que le systeme n'explose pas
     LeapFrogSolver solver;
     GravitySpring gravity(0.981);
     HookSpring hook(10.0, 1.0);;
@@ -68,20 +68,20 @@ int main(int argc, char** argv) {
     mmGrid grid;
     mmGrid::const_iterator gridIt;
     mmGrid::const_iterator gridIt2;
-    //std::vector<Beast*> gridZone ; // Vecteur contenant les Beast d'une zone de la multimap, on devrait pouvoir s'en passer en utilisant correctement la fonction equal_range
-    BeastSpring wba( 0, 0.01, dt );
+    BeastSpring wba( 60, 0.05, dt );
+
 
     // Code d'exemple pour le rendu: des particles placées en cercle
-    std::vector<Beast> particles(20);
+    std::vector<Beast> particles(100);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
-        float c = cos(i * delta), s = sin(i * delta);
-        particles[i].position = glm::vec2(rand_FloatRange(-0.9,0.9) , rand_FloatRange(-0.9,0.9));
-        particles[i].color = glm::vec3(1.,1.,1.);
+        //float c = cos(i * delta), s = sin(i * delta);
+        particles[i].position = glm::vec2(rand_FloatRange(-0.8,0.8) , rand_FloatRange(-0.8,0.8));
+        //particles[i].color = glm::vec3(1.,1.,1.);
         particles[i].mass = 1.f;
     }
 
-    Polygon poly(glm::vec3(1.0, 0.8, 0.0), false );
+    Polygon poly( glm::vec3(1.0, 0.8, 0.0), false );
     renderer.addPolygon( &poly.m_Vertices[0], poly.m_Vertices.size(), poly.color );
 
     ///////////////////////////////////////////////////////////////////////// LAST MODIFIED
@@ -128,6 +128,9 @@ int main(int argc, char** argv) {
         // BEAST pour chaque zone de la multimap
         for( short unsigned int i=0 ; i < gridWidth*gridHeight ; ++i ){
             for( gridIt = grid.equal_range(i).first ; gridIt != grid.equal_range(i).second ; ++gridIt ){
+                particles[gridIt->second].color[i%3] = 0.0;
+                particles[gridIt->second].color[2-i%3] = 1.0;
+                particles[gridIt->second].color[2-i%3] = 1.0;
                 gridIt2 = gridIt;
                 ++gridIt2;
                 while( gridIt2 != grid.equal_range(i).second ){
