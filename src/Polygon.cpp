@@ -1,10 +1,10 @@
 #include "api/Polygon.hpp"
 #include <iostream>
 /**
-    Calcule puis renvoie g, le centre de gravité d'un polygone irrégulier
-    Source : http://math.15873.pagesperso-orange.fr/page9.htm
+    Calcule le centre de gravité d'un polygone, même irrégulier
+    D'après : http://math.15873.pagesperso-orange.fr/page9.htm
 */
-const glm::vec2& Polygon::getGCenter() const {
+void Polygon::computeGCenter() {
 
     // Calcul de l'aire du polygone
     float aire = 0;
@@ -30,7 +30,7 @@ const glm::vec2& Polygon::getGCenter() const {
     gx = gx/(6*aire);
     gy = gy/(6*aire);
 
-        printf("( %f, %f)\n", gx, gy);
-    return glm::vec2(gx, gy);
+    //printf("( %f, %f)\n", gx, gy);
+    m_gCenter = glm::vec2(gx, gy);
 }
 

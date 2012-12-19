@@ -18,8 +18,9 @@
 
 #include "api/Beast.hpp"
 #include "api/BeastSpring.hpp"
+#include "api/HealthPack.hpp"
 #include <map>
-
+//#include "SDL_ttf.h"
 using namespace std;
 
 static const size_t WINDOW_WIDTH = 512;
@@ -31,11 +32,16 @@ static const char* WINDOW_TITLE = "Wild Beast Arena";
 /*    TODO  FLAG BEAST  */
 
 typedef std::multimap<short unsigned int, size_t> mmGrid ;
-static const int gridWidth = 3;
-static const int gridHeight = 3;
+static const int gridWidth = 5;
+static const int gridHeight = 5;
+
 mmGrid::key_type fromPosToGrid( const glm::vec2& pos ){
-    mmGrid::key_type index = (mmGrid::key_type)( (pos.x+1.0)/(float)gridWidth );
-    index += (mmGrid::key_type)( ( (pos.y+1.0)/(float)gridHeight )*10 );
+    float tmp = ( pos.x < -1.0/(float)gridWidth  )? 0 : 1;
+    tmp += (pos.x < 1.0/(float)gridWidth )?0:1;
+    tmp += ( pos.y < -1.0/(float)gridHeight )? 0:gridWidth;
+    tmp += ( pos.y < 1.0/(float)gridHeight )?0:gridWidth;
+    mmGrid::key_type index = (mmGrid::key_type)( tmp );
+
     return index;
 }
 
@@ -46,6 +52,20 @@ float rand_FloatRange(float a, float b)
     return ((b-a)*((float)rand()/RAND_MAX))+a;
 }
 
+bool mouseEvent( const SDL_Event& event, float* posX, float* posY){
+
+    if( event.button.button == SDL_BUTTON_LEFT ){
+        *posX = event.button.x / (float)WINDOW_WIDTH ;
+        *posX = *posX*2 - 1;
+        *posY = event.button.y / (float)WINDOW_HEIGHT;
+        *posY = *posY*2 - 1;
+
+        return true;
+    }
+    return false;
+    
+}
+
 
 int main(int argc, char** argv) {
     // Initialisation de la SDL
@@ -53,30 +73,42 @@ int main(int argc, char** argv) {
     SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BYTES_PER_PIXEL, SDL_OPENGL);
     SDL_WM_SetCaption(WINDOW_TITLE, 0);
 
+
+    /* TTF
+    SDL_Surface* txtBackground = NULL ;
+    SDL_Surface* txtMessage = NULL ;
+    SDL_Surface* txtScreen = NULL ;
+    TTF_Font* font;
+    SDL_Color txtColor = { 255, 255, 255 };
+    //*/
+    
+
     // Creation du renderer
     GLRenderer renderer;
 
     /** Placez votre code d'initialisation de la simulation ici **/
-    static const float dt = 0.00051; // Pas de simulation, choix arbitraire mais dois rester petit pour que le systeme n'explose pas
+    static const float dt = 0.0001; // Pas de simulation, choix arbitraire mais dois rester petit pour que le systeme n'explose pas
     LeapFrogSolver solver;
     GravitySpring gravity(0.981);
     HookSpring hook(10.0, 1.0);;
     CineticBrake cb(0.000001, dt);
     Attraction attr(0.001);
 
+
     // BEAST
     mmGrid grid;
     mmGrid::const_iterator gridIt;
     mmGrid::const_iterator gridIt2;
     BeastSpring wba( 60, 0.05, dt );
+    std::vector<HealthPack> hpList ; 
 
 
-    // Code d'exemple pour le rendu: des particles placées en cercle
-    std::vector<Beast> particles(100);
+    // Code d'exemple pour le rendu: des particles placÃ©es en cercle
+    std::vector<Beast> particles(50);
     float delta = 2 * 3.14 / particles.size(); // 2pi / nombre de particules
     for(size_t i = 0; i < particles.size(); ++i) {
-        //float c = cos(i * delta), s = sin(i * delta);
-        particles[i].position = glm::vec2(rand_FloatRange(-0.8,0.8) , rand_FloatRange(-0.8,0.8));
+        float c = cos(i * delta), s = sin(i * delta);
+        particles[i].position = glm::vec2(0.8*c,0.8*s);//glm::vec2(rand_FloatRange(-0.8,0.8) , rand_FloatRange(-0.8,0.8));
         //particles[i].color = glm::vec3(1.,1.,1.);
         particles[i].mass = 1.f;
     }
@@ -90,7 +122,7 @@ int main(int argc, char** argv) {
     Box::build( glm::vec2(-0.9, -0.9), 1.8, 1.8, obstacles.back() );
 
     // Ici ajout d'autres obstacles eventuels
-        // polygone irrégulier
+        // polygone irrÃ©gulier
     // Polygon irr( glm::vec3(1, 0.8, 0.2), true );
     // irr.addVertex( glm::vec2(-1, -1) );
     // irr.addVertex( glm::vec2(1, -0.8) );
@@ -104,11 +136,13 @@ int main(int argc, char** argv) {
 	    renderer.addPolygon(&obstacles[i].getVertices()[0], obstacles[i].size(), obstacles[i].color);
     }
 
-    float wallElasticity = 2.0; // Les particules vont tomber après quelques rebonds
+    float wallElasticity = 1.4; // Les particules vont tomber aprÃ¨s quelques rebonds
     // Creation des ressort de collision
     std::vector<PolygonSpring> polygonSprings;
     for( size_t i = 0; i < obstacles.size(); ++i )
         polygonSprings.push_back(PolygonSpring(obstacles[i], wallElasticity, solver, dt));
+
+    
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -123,32 +157,41 @@ int main(int argc, char** argv) {
         /** Placez votre code de simulation ici */
         for( size_t i = 0; i < particles.size(); ++i ){
             grid.insert( std::pair<short unsigned int, size_t>( fromPosToGrid(particles[i].position), i ) ); // BEAST construction de la multimap
+            //std::cout << fromPosToGrid( particles[i].position ) << std::endl;
         }
 
         // BEAST pour chaque zone de la multimap
         for( short unsigned int i=0 ; i < gridWidth*gridHeight ; ++i ){
             for( gridIt = grid.equal_range(i).first ; gridIt != grid.equal_range(i).second ; ++gridIt ){
-                particles[gridIt->second].color[i%3] = 0.0;
-                particles[gridIt->second].color[2-i%3] = 1.0;
-                particles[gridIt->second].color[2-i%3] = 1.0;
                 gridIt2 = gridIt;
                 ++gridIt2;
                 while( gridIt2 != grid.equal_range(i).second ){
                     wba.generateForces( &particles[gridIt->second], &particles[gridIt2->second] );
+                    //cb.generateForces( &particles[gridIt->second], &particles[gridIt2->second] );
                     ++ gridIt2;
                 }
-
+                for( size_t i=0 ; i < hpList.size() ; ++i ){
+                    attr.generateForces( &particles[gridIt->second], hpList[i].getGCenter(), 200 ); // Health packs / particules attraction
+                    if( glm::distance( particles[gridIt->second].position, hpList[i].getGCenter() ) < 0.08 ){
+                        // If close enough, particle picks up the health pack
+                        particles[gridIt->second].heal();
+                        // Remove health pack
+                        renderer.removePolygon( hpList[i].index );
+                        hpList.erase( hpList.begin()+i );
+                        --i;
+                    }
+                }
             }
         }
 
-        // Après l'application des autres forces (gravité seulement pour l'instant):
+        // AprÃ¨s l'application des autres forces (gravitÃ© seulement pour l'instant):
         for(size_t i = 0; i < particles.size(); ++i){            // Pour chaque particule
             for(size_t j = 0; j < polygonSprings.size(); ++j) { // Pour chaque ressort de collision
-                polygonSprings[j].generateForces(&particles[i], 0); // Test de collision et génération des forces
+                polygonSprings[j].generateForces(&particles[i], 0); // Test de collision et gÃ©nÃ©ration des forces
             }
         }
 
-        // Résolution pour chaque particule:
+        // RÃ©solution pour chaque particule:
         for(size_t i = 0; i < particles.size(); ++i){
             solver.solve( particles[i], dt );
         }
@@ -163,12 +206,19 @@ int main(int argc, char** argv) {
 
         SDL_Event e;
         while( SDL_PollEvent(&e) ) {
-            if(e.type == SDL_QUIT) {
-                done = true;
-                break;
+            switch( e.type ) {
+                case SDL_QUIT:  done = true;
+                                break;
+                case SDL_MOUSEBUTTONUP: float hpX, hpY;
+                                        if( mouseEvent(e,&hpX, &hpY) ){
+                                            hpList.push_back( HealthPack( hpX, -hpY ) );
+                                            hpList.back().index = renderer.addPolygon(&hpList.back().m_Vertices[0], hpList.back().m_Vertices.size(), hpList.back().color );
+                                        }
+                                        break;
+                default:break;
             }
 
-            /** Placez votre gestion des évenements ici */
+            /** Placez votre gestion des Ã©venements ici */
         }
     }
 

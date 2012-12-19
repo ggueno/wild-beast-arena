@@ -32,27 +32,28 @@ class BeastSpring : public Spring {
             // First vector is simple
             //float epsilon = 0.00001;
             glm::vec2 attack( p2->position - p1->position );
-            float e = (m_threshold+distance) / m_threshold ;
-            attack = attack * e * m_dt;
+            float e = (m_threshold+distance) / m_threshold ; // 1 < e < ~2
+            attack = attack * e ;
 
             // We add a random angle to make the second more complicated
             float theta = degToRad(m_alpha); // degree to radian conversion
             theta = ( (rand() / (float)RAND_MAX) * 2.0 - 1.0 ) * theta;
+
             float cs = cos(theta);
             float sn = sin(theta);
-            glm::vec2 run( -(attack.x*cs - attack.y*sn)
-                         , -(attack.x*sn + attack.y*cs) );
+            glm::vec2 run( (attack.x*cs - attack.y*sn)
+                         , (attack.x*sn + attack.y*cs) );
 
             if( p1->life()*p1->aggro() > p2->life() ){
                 // coef is used to adjust haste
-                float coef = p1->aggro() ;//* (Beast::PV_MAX - p1->life() ) ;
+                float coef = p1->aggro() ;
                 p1->addForce( attack * coef );
-                p2->addForce( run * coef ); // TODO define a better behaviour
+                p2->addForce( run * coef  );
             }
             else {
-                float coef = p2->aggro() ;//* (Beast::PV_MAX - p2->life() ) ;
+                float coef = p2->aggro() ;
                 p2->addForce( -attack * coef );
-                p1->addForce( -run * coef ); // TODO define a better behaviour
+                p1->addForce( -run * coef );
 
             }
         }

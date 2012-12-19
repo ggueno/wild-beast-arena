@@ -17,7 +17,7 @@ class Attraction : public Spring {
         }
 
         /**
-            Applique une force d'attraction entre une particle et un polygone
+            Applique une force d'attraction entre une particule et un polygone
             Le polygone n'est soumis à aucune force.
             p1 : particule
             C : centre de gravité du polygone (voir Polygon::getGCenter())
@@ -25,10 +25,9 @@ class Attraction : public Spring {
         */
         void generateForces( Particle* p1, const glm::vec2& C, float M ){
             glm::vec2 f = m_k * p1->mass * M * glm::vec2(C-p1->position) ;
-            f /= glm::distance(p1->position, C) * glm::distance(p1->position, C);
+            f /= glm::pow( glm::distance(p1->position, C), 2.0f );// * glm::distance(p1->position, C);
             p1->force += f;
         }
-
 };
 
 #endif

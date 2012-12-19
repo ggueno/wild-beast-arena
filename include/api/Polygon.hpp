@@ -5,8 +5,9 @@
 #include <vector>
 
 class Polygon {
-private:
+protected:
     bool m_bInner;
+    glm::vec2 m_gCenter;
 
 public:
     glm::vec3 color;
@@ -37,7 +38,8 @@ public:
         return m_Vertices;
     }
 
-    const glm::vec2& getGCenter() const ;
+    void computeGCenter();
+    const glm::vec2& getGCenter() const { return m_gCenter; }
 };
 
 
